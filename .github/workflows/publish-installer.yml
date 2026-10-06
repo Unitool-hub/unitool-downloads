@@ -1,0 +1,20 @@
+name: Publish installer
+on:
+  workflow_dispatch: {}
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download the live installer and prove it
+        run: |
+          set -euo pipefail
+          curl -fsSL "https://app.unitool.co.za/download/UniTool-Setup.exe?cb=$RANDOM" -o UniTool-Setup.exe
+          test "$(stat -c%s UniTool-Setup.exe)" = "94168080"
+          echo "fdbe6f0613116d244f7e418557bbb941d229738cdd6e4354d4632dc78e3f6a24  UniTool-Setup.exe" | sha256sum -c -
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create installer-v1 UniTool-Setup.exe --repo "$GITHUB_REPOSITORY" --target main --title "UniTool for Windows (copy of the live installer, 6 Oct 2026)" --notes "Exact copy of the installer that was live at app.unitool.co.za/download/UniTool-Setup.exe on 6 October 2026. 94,168,080 bytes, sha256 fdbe6f0613116d244f7e418557bbb941d229738cdd6e4354d4632dc78e3f6a24."
